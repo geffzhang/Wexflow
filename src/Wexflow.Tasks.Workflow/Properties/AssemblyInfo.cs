@@ -1,25 +1,26 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // Les informations générales relatives à un assembly dépendent de 
 // l'ensemble d'attributs suivant. Changez les valeurs de ces attributs pour modifier les informations
 // associées à un assembly.
-[assembly: AssemblyTitle("Wexflow.Tasks.Movedir")]
+[assembly: AssemblyTitle("Wexflow.Tasks.Workflow")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("EL ASSAS")]
-[assembly: AssemblyProduct("Wexflow.Tasks.Movedir")]
-[assembly: AssemblyCopyright("Copyright © EL ASSAS 2017")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("Wexflow.Tasks.Workflow")]
+[assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 // L'affectation de la valeur false à ComVisible rend les types invisibles dans cet assembly 
-// aux composants COM. Si vous devez accéder à un type dans cet assembly à partir de 
+// aux composants COM.  Si vous devez accéder à un type dans cet assembly à partir de 
 // COM, affectez la valeur true à l'attribut ComVisible sur ce type.
 [assembly: ComVisible(false)]
 
 // Le GUID suivant est pour l'ID de la typelib si ce projet est exposé à COM
-[assembly: Guid("ff0e7b40-b839-479e-9fd4-9d9cbe58f40a")]
+[assembly: Guid("10f39219-fe79-4191-b63e-59ff217efc47")]
 
 // Les informations de version pour un assembly se composent des quatre valeurs suivantes :
 //
