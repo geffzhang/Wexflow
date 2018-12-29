@@ -1,4 +1,0 @@
-language: csharp
-os:
-  - linux
-solution: Wexflow.vs2015.sln
