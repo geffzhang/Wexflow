@@ -7,26 +7,38 @@ namespace Wexflow.Server
     [ServiceContract(Namespace = "http://wexflow.com/")]
     public interface IWexflowService
     {
-        [OperationContract]
-        WorkflowInfo[] GetWorkflows();
+        //[OperationContract]
+        //WorkflowInfo[] GetWorkflows();
+
+        //[OperationContract]
+        //WorkflowInfo[] GetApprovalWorkflows();
 
         [OperationContract]
-        WorkflowInfo[] Search(string keyword);
+        WorkflowInfo[] Search(string keyword, string username, string password);
 
         [OperationContract]
-        void StartWorkflow(string id);
+        WorkflowInfo[] SearchApprovalWorkflows(string keyword, string username, string password);
 
         [OperationContract]
-        bool StopWorkflow(string id);
+        void StartWorkflow(string id, string username, string password);
 
         [OperationContract]
-        bool SuspendWorkflow(string id);
+        bool StopWorkflow(string id, string username, string password);
 
         [OperationContract]
-        void ResumeWorkflow(string id);
+        bool SuspendWorkflow(string id, string username, string password);
 
         [OperationContract]
-        WorkflowInfo GetWorkflow(string id);
+        void ResumeWorkflow(string id, string username, string password);
+
+        [OperationContract]
+        bool ApproveWorkflow(string id, string username, string password);
+
+        [OperationContract]
+        bool DisapproveWorkflow(string id, string username, string password);
+
+        [OperationContract]
+        WorkflowInfo GetWorkflow(string username, string password, int id);
 
         [OperationContract]
         TaskInfo[] GetTasks(string id);
@@ -35,13 +47,16 @@ namespace Wexflow.Server
         string GetWorkflowXml(string id);
 
         [OperationContract]
+        bool IsXmlWorkflowValid(Stream streamdata);
+
+        [OperationContract]
+        bool SaveXmlWorkflow(Stream streamdata);
+
+        [OperationContract]
         bool SaveWorkflow(Stream streamdata);
 
         [OperationContract]
         string[] GetTaskNames();
-
-        [OperationContract]
-        string GetWorkflowsFolder();
 
         [OperationContract]
         bool IsWorkflowIdValid(string id);
@@ -53,7 +68,7 @@ namespace Wexflow.Server
         bool IsPeriodValid(string period);
 
         [OperationContract]
-        bool DeleteWorkflow(string id);
+        bool DeleteWorkflow(string id, string username, string password);
 
         [OperationContract]
         string[] GetSettings(string taskName);
@@ -71,31 +86,40 @@ namespace Wexflow.Server
         Entry[] GetEntries();
 
         [OperationContract]
-        User GetUser(string username);
+        User GetUser(string qusername, string qpassword, string username);
+
+        //[OperationContract]
+        //User[] GetUsers();
 
         [OperationContract]
-        User[] GetUsers();
+        User[] SearchUsers(string qusername, string qpassword, string keyword, int uo);
 
         [OperationContract]
-        User[] SearchUsers(string keyword, int uo);
+        bool SaveUserWorkflows(Stream streamdata);
 
         [OperationContract]
-        string GetPassword(string username);
+        WorkflowInfo[] GetUserWorkflows(string qusername, string qpassword, string userId);
 
         [OperationContract]
-        bool InsertUser(string username, string password, int userProfile, string email);
+        User[] SearchAdministrators(string qusername, string qpassword, string keyword, int uo);
+
+        //[OperationContract]
+        //string GetPassword(string qusername, string qpassword, string username);
 
         [OperationContract]
-        bool UpdateUser(int userId, string username, string password, int userProfile, string email);
+        bool InsertUser(string qusername, string qpassword, string username, string password, int userProfile, string email);
 
         [OperationContract]
-        bool UpdateUsernameAndEmailAndUserProfile(int userId, string username, string email, int up);
+        bool UpdateUser(string qusername, string qpassword, string userId, string username, string password, int userProfile, string email);
 
         [OperationContract]
-        bool DeleteUser(string username, string password);
+        bool UpdateUsernameAndEmailAndUserProfile(string qusername, string qpassword, string userId, string username, string email, int up);
 
         [OperationContract]
-        bool ResetPassword(string username, string email);
+        bool DeleteUser(string qusername, string qpassword, string username, string password);
+
+        [OperationContract]
+        bool ResetPassword(string username);
 
         [OperationContract]
         HistoryEntry[] GetHistoryEntries();
@@ -132,5 +156,8 @@ namespace Wexflow.Server
 
         [OperationContract]
         double GetEntryStatusDateMax();
+
+        [OperationContract]
+        bool DeleteWorkflows(Stream streamdata);
     }
 }

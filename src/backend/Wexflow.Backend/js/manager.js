@@ -5,18 +5,22 @@
     var uri = Common.trimEnd(Settings.Uri, "/");
     var lnkManager = document.getElementById("lnk-manager");
     var lnkDesigner = document.getElementById("lnk-designer");
+    var lnkApproval = document.getElementById("lnk-approval");
     var lnkUsers = document.getElementById("lnk-users");
+    var lnkProfiles = document.getElementById("lnk-profiles");
     var selectedId = -1;
     var workflows = {};
     var timer = null;
-    var timerInterval = 500; // ms
+    var timerInterval = 1000; // ms
+    var username = "";
+    var password = "";
 
     var html = "<div id='wf-container'>"
         + "<div id='wf-cmd'>"
-        + "<button id='wf-start' type='button' class='btn btn-primary btn-sm'>Start</button>"
-        + "<button id='wf-pause' type='button' class='btn btn-secondary btn-sm'>Suspend</button>"
-        + "<button id='wf-resume' type='button' class='btn btn-secondary btn-sm'>Resume</button>"
-        + "<button id='wf-stop' type='button' class='btn btn-danger btn-sm'>Stop</button>"
+        + "<button id='wf-start' type='button' class='btn btn-primary btn-xs'>Start</button>"
+        + "<button id='wf-pause' type='button' class='btn btn-secondary btn-xs'>Suspend</button>"
+        + "<button id='wf-resume' type='button' class='btn btn-secondary btn-xs'>Resume</button>"
+        + "<button id='wf-stop' type='button' class='btn btn-danger btn-xs'>Stop</button>"
         + "</div>"
         + "<div id='wf-notifier'>"
         + "<input id='wf-notifier-text' type='text' name='fname' readonly>"
@@ -25,7 +29,7 @@
         + "<div id='wf-search-text-container'>"
         + "<input id='wf-search-text' type='text' name='fname'>"
         + "</div>"
-        + "<button id='wf-search-action' type='button' class='btn btn-primary btn-sm'>Search</button>"
+        + "<button id='wf-search-action' type='button' class='btn btn-primary btn-xs'>Search</button>"
         + "</div>"
         + "<div id='wf-workflows'>"
         + "</div>"
@@ -46,15 +50,24 @@
         Common.redirectToLoginPage();
     } else {
         var user = JSON.parse(suser);
-        Common.get(uri + "/user?username=" + encodeURIComponent(user.Username), function (u) {
+
+        username = user.Username;
+        password = user.Password;
+
+        Common.get(uri + "/user?qu=" + encodeURIComponent(username) + "&qp=" + encodeURIComponent(password) + "&username=" + encodeURIComponent(user.Username), function (u) {
             if (user.Password !== u.Password) {
                 Common.redirectToLoginPage();
             } else {
 
-                if (u.UserProfile === 0) {
+                if (u.UserProfile === 0 || u.UserProfile === 1) {
                     lnkManager.style.display = "inline";
                     lnkDesigner.style.display = "inline";
+                    lnkApproval.style.display = "inline";
                     lnkUsers.style.display = "inline";
+
+                    if (u.UserProfile === 0) {
+                        lnkProfiles.style.display = "inline";
+                    }
 
                     var btnLogout = document.getElementById("btn-logout");
                     var divWorkflows = document.getElementById("wf-manager");
@@ -102,8 +115,6 @@
         });
     }
 
-   
-
     function compareById(wf1, wf2) {
         if (wf1.Id < wf2.Id) {
             return -1;
@@ -129,7 +140,7 @@
     }
 
     function loadWorkflows() {
-        Common.get(uri + "/search?s=" + encodeURIComponent(searchText.value), function (data) {
+        Common.get(uri + "/search?s=" + encodeURIComponent(searchText.value) + "&u=" + encodeURIComponent(username) + "&p=" + encodeURIComponent(password), function (data) {
             data.sort(compareById);
             var items = [];
             var i;
@@ -142,18 +153,20 @@
                     + "<td class='wf-n' title='" + val.Name + "'>" + val.Name + "</td>"
                     + "<td class='wf-lt'>" + lt + "</td>"
                     + "<td class='wf-e'><input type='checkbox' readonly disabled " + (val.IsEnabled ? "checked" : "") + "></input></td>"
+                    + "<td class='wf-a'><input type='checkbox' readonly disabled " + (val.IsApproval ? "checked" : "") + "></input></td>"
                     + "<td class='wf-d' title='" + val.Description + "'>" + val.Description + "</td>"
                     + "</tr>");
 
             }
 
-            var table = "<table id='wf-workflows-table' class='table table-hover'>"
+            var table = "<table id='wf-workflows-table' class='table'>"
                 + "<thead class='thead-dark'>"
                 + "<tr>"
                 + "<th class='wf-id'>Id</th>"
                 + "<th class='wf-n'>Name</th>"
                 + "<th class='wf-lt'>LaunchType</th>"
                 + "<th class='wf-e'>Enabled</th>"
+                + "<th class='wf-a'>Approval</th>"
                 + "<th class='wf-d'>Description</th>"
                 + "</tr>"
                 + "</thead>"
@@ -171,7 +184,7 @@
             }
 
             function getWorkflow(wid, func) {
-                Common.get(uri + "/workflow/" + wid, function (d) {
+                Common.get(uri + "/workflow?u=" + encodeURIComponent(username) + "&p=" + encodeURIComponent(password) + "&w=" + wid, function (d) {
                     func(d);
                 });
             }
@@ -193,23 +206,27 @@
                         Common.disableButton(suspendButton, !(workflow.IsRunning && !workflow.IsPaused));
                         Common.disableButton(resumeButton, !workflow.IsPaused);
 
-                        if (workflow.IsRunning === true && workflow.IsPaused === false) {
-                            notify("This workflow is running...");
-                        }
-                        else if (workflow.IsPaused === true) {
-                            notify("This workflow is suspended.");
-                        }
-                        else {
-                            notify("");
+                        if (workflow.IsApproval === true && workflow.IsWaitingForApproval === true && workflow.IsPaused === false) {
+                            notify("This workflow is waiting for approval...");
+                        } else {
+                            if (workflow.IsRunning === true && workflow.IsPaused === false) {
+                                notify("This workflow is running...");
+                            }
+                            else if (workflow.IsPaused === true) {
+                                notify("This workflow is suspended.");
+                            } else {
+                                notify("");
+                            }
                         }
                     }
                 });
             }
 
             function workflowStatusChanged(workflow) {
-                var changed = workflows[workflow.Id].IsRunning !== workflow.IsRunning || workflows[workflow.Id].IsPaused !== workflow.IsPaused;
+                var changed = workflows[workflow.Id].IsRunning !== workflow.IsRunning || workflows[workflow.Id].IsPaused !== workflow.IsPaused || workflows[workflow.Id].IsWaitingForApproval !== workflow.IsWaitingForApproval;
                 workflows[workflow.Id].IsRunning = workflow.IsRunning;
                 workflows[workflow.Id].IsPaused = workflow.IsPaused;
+                workflows[workflow.Id].IsWaitingForApproval = workflow.IsWaitingForApproval;
                 return changed;
             }
 
@@ -240,41 +257,41 @@
             }
 
             startButton.onclick = function () {
-                var startUri = uri + "/start/" + selectedId;
+                var startUri = uri + "/start?w=" + selectedId + "&u=" + encodeURIComponent(username) + "&p=" + encodeURIComponent(password);
                 Common.post(startUri);
             };
 
             suspendButton.onclick = function () {
-                var suspendUri = uri + "/suspend/" + selectedId;
+                var suspendUri = uri + "/suspend?w=" + selectedId + "&u=" + encodeURIComponent(username) + "&p=" + encodeURIComponent(password);
                 Common.post(suspendUri, function (res) {
                     if (res === true) {
                         updateButtons(selectedId, true);
-                    } else{
-                        alert("This operation is not supported.");
+                    } else {
+                        Common.toastInfo("This operation is not supported.");
                     }
                 });
             };
 
             resumeButton.onclick = function () {
-                var resumeUri = uri + "/resume/" + selectedId;
+                var resumeUri = uri + "/resume?w=" + selectedId + "&u=" + encodeURIComponent(username) + "&p=" + encodeURIComponent(password);
                 Common.post(resumeUri);
             };
 
             stopButton.onclick = function () {
-                var stopUri = uri + "/stop/" + selectedId;
+                var stopUri = uri + "/stop?w=" + selectedId + "&u=" + encodeURIComponent(username) + "&p=" + encodeURIComponent(password);
                 Common.post(stopUri,
                     function (res) {
                         if (res === true) {
                             updateButtons(selectedId, true);
                         } else {
-                            alert("This operation is not supported.");
+                            Common.toastInfo("This operation is not supported.");
                         }
                     });
             };
 
             // End of get workflows
         }, function () {
-            alert("An error occured while retrieving workflows. Check Wexflow Web Service Uri and check that Wexflow Windows Service is running correctly.");
+            Common.toastError("An error occured while retrieving workflows. Check that Wexflow server is running correctly.");
         });
     }
 

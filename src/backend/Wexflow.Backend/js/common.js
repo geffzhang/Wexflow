@@ -79,10 +79,12 @@
                 return "<img src='images/failed-small.png' /> Failed";
             case 4:
                 return "<img src='images/warning-small.png' /> Warning";
-            case 5:
-                return "<img src='images/disabled-small.png' /> Disabled";
+            //case 5:
+            //    return "<img src='images/disabled-small.png' /> Disabled";
             case 6:
                 return "<img src='images/stopped-small.png' /> Stopped";
+            case 7:
+                return "<img src='images/disapproved-small.png' /> Disapproved";
             default:
                 return "";
         }
@@ -93,9 +95,8 @@
     },
 
     formatDate: function (d) {
-        return ("0" + d.getDate()).slice(-2) + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" +
-            d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2);
-
+        return ("0" + d.getDate()).slice(-2) + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + d.getFullYear()
+            + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2);
     },
 
     os: function () {
@@ -110,6 +111,33 @@
         if (window.navigator.userAgent.indexOf("X11") !== -1) osName = "UNIX";
         if (window.navigator.userAgent.indexOf("Linux") !== -1) osName = "Linux";
         return osName;
+    },
+
+    toastInfo: function (msg) {
+        $.toast({
+            heading: 'Information',
+            text: msg,
+            hideAfter: 5000,
+            icon: 'info'
+        });
+    },
+
+    toastSuccess: function (msg) {
+        $.toast({
+            heading: 'Success',
+            text: msg,
+            hideAfter: 5000,
+            icon: 'success'
+        });
+    },
+
+    toastError: function (msg) {
+        $.toast({
+            heading: 'Error',
+            text: msg,
+            hideAfter: 5000,
+            icon: 'error'
+        });
     }
 
 };

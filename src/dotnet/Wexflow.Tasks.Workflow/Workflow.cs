@@ -11,19 +11,25 @@ namespace Wexflow.Tasks.Workflow
         Start,
         Suspend,
         Resume,
-        Stop
+        Stop,
+        Approve,
+        Disapprove
     }
 
-    public class Workflow:Task
+    public class Workflow : Task
     {
-        public string WexflowWebServiceUri { get; private set; }
-        public WorkflowAction Action { get; private set; }
-        public int[] WorkflowIds { get; private set; }
+        public string WexflowWebServiceUri { get; }
+        public string Username { get; }
+        public string Password { get; }
+        public WorkflowAction Action { get; }
+        public int[] WorkflowIds { get; }
 
         public Workflow(XElement xe, Core.Workflow wf) : base(xe, wf)
         {
             WexflowWebServiceUri = GetSetting("wexflowWebServiceUri");
-            Action = (WorkflowAction) Enum.Parse(typeof(WorkflowAction), GetSetting("action"), true);
+            Username = GetSetting("username");
+            Password = GetSetting("password");
+            Action = (WorkflowAction)Enum.Parse(typeof(WorkflowAction), GetSetting("action"), true);
             WorkflowIds = GetSettingsInt("id");
         }
 
@@ -35,7 +41,7 @@ namespace Wexflow.Tasks.Workflow
             foreach (var id in WorkflowIds)
             {
                 WexflowServiceClient client = new WexflowServiceClient(WexflowWebServiceUri);
-                WorkflowInfo wfInfo = client.GetWorkflow(id);
+                WorkflowInfo wfInfo = client.GetWorkflow(Username, Password, id);
                 switch (Action)
                 {
                     case WorkflowAction.Start:
@@ -46,7 +52,7 @@ namespace Wexflow.Tasks.Workflow
                         }
                         else
                         {
-                            client.StartWorkflow(id);
+                            client.StartWorkflow(id, Username, Password);
                             InfoFormat("Workflow {0} started.", id);
                             if (!atLeastOneSucceed) atLeastOneSucceed = true;
                         }
@@ -54,20 +60,20 @@ namespace Wexflow.Tasks.Workflow
                     case WorkflowAction.Suspend:
                         if (wfInfo.IsRunning)
                         {
-                            client.SuspendWorkflow(id);
+                            client.SuspendWorkflow(id, Username, Password);
                             InfoFormat("Workflow {0} suspended.", id);
                             if (!atLeastOneSucceed) atLeastOneSucceed = true;
                         }
                         else
                         {
                             success = false;
-                            ErrorFormat("Can't suspend the workflow {0} because it's not running.", Workflow.Id);   
+                            ErrorFormat("Can't suspend the workflow {0} because it's not running.", Workflow.Id);
                         }
                         break;
                     case WorkflowAction.Resume:
                         if (wfInfo.IsPaused)
                         {
-                            client.ResumeWorkflow(id);
+                            client.ResumeWorkflow(id, Username, Password);
                             InfoFormat("Workflow {0} resumed.", id);
                             if (!atLeastOneSucceed) atLeastOneSucceed = true;
                         }
@@ -80,7 +86,7 @@ namespace Wexflow.Tasks.Workflow
                     case WorkflowAction.Stop:
                         if (wfInfo.IsRunning)
                         {
-                            client.StopWorkflow(id);
+                            client.StopWorkflow(id, Username, Password);
                             InfoFormat("Workflow {0} stopped.", id);
                             if (!atLeastOneSucceed) atLeastOneSucceed = true;
                         }
@@ -88,6 +94,32 @@ namespace Wexflow.Tasks.Workflow
                         {
                             success = false;
                             ErrorFormat("Can't stop the workflow {0} because it's not running.", Workflow.Id);
+                        }
+                        break;
+                    case WorkflowAction.Approve:
+                        if (wfInfo.IsApproval && wfInfo.IsWaitingForApproval)
+                        {
+                            client.ApproveWorkflow(id, Username, Password);
+                            InfoFormat("Workflow {0} approved.", id);
+                            if (!atLeastOneSucceed) atLeastOneSucceed = true;
+                        }
+                        else
+                        {
+                            success = false;
+                            ErrorFormat("Can't approve the workflow {0} because it's not waiting for approval.", Workflow.Id);
+                        }
+                        break;
+                    case WorkflowAction.Disapprove:
+                        if (wfInfo.IsApproval && wfInfo.IsWaitingForApproval)
+                        {
+                            client.DisapproveWorkflow(id, Username, Password);
+                            InfoFormat("Workflow {0} disapproved.", id);
+                            if (!atLeastOneSucceed) atLeastOneSucceed = true;
+                        }
+                        else
+                        {
+                            success = false;
+                            ErrorFormat("Can't disapprove the workflow {0} because it's not waiting for approval.", Workflow.Id);
                         }
                         break;
                 }
@@ -103,7 +135,7 @@ namespace Wexflow.Tasks.Workflow
             {
                 status = Core.Status.Error;
             }
-            
+
             return new TaskStatus(status);
         }
     }

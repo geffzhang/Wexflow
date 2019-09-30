@@ -2,6 +2,7 @@
 using Wexflow.Core;
 using System.Configuration;
 using System.ServiceModel;
+using System.Threading;
 
 namespace Wexflow.Server
 {
@@ -11,11 +12,17 @@ namespace Wexflow.Server
         public static WexflowEngine WexflowEngine = new WexflowEngine(SettingsFile);
 
         private ServiceHost _serviceHost;
-        
+
         public WexflowWindowsService()
         {
             InitializeComponent();
             ServiceName = "Wexflow";
+            Thread startThread = new Thread(StartThread) { IsBackground = true };
+            startThread.Start();
+        }
+
+        private void StartThread()
+        {
             WexflowEngine.Run();
         }
 
@@ -29,7 +36,7 @@ namespace Wexflow.Server
             // Create a ServiceHost for the WexflowService type and 
             // provide the base address.
             _serviceHost = new ServiceHost(typeof(WexflowService));
-                
+
             // Open the ServiceHostBase to create listeners and start 
             // listening for messages.
             _serviceHost.Open();

@@ -16,7 +16,9 @@
     var txtTo = document.getElementById("txt-to");
     var lnkManager = document.getElementById("lnk-manager");
     var lnkDesigner = document.getElementById("lnk-designer");
+    var lnkApproval = document.getElementById("lnk-approval");
     var lnkUsers = document.getElementById("lnk-users");
+    var lnkProfiles = document.getElementById("lnk-profiles");
 
     var page = 1;
     var numberOfPages = 0;
@@ -24,20 +26,31 @@
     var suser = getUser();
     var from = null;
     var to = null;
+    var username = "";
+    var password = "";
 
     if (suser === null || suser === "") {
         Common.redirectToLoginPage();
     } else {
         var user = JSON.parse(suser);
-        Common.get(uri + "/user?username=" + encodeURIComponent(user.Username), function (u) {
+
+        username = user.Username;
+        password = user.Password;
+
+        Common.get(uri + "/user?qu=" + encodeURIComponent(username) + "&qp=" + encodeURIComponent(password) + "&username=" + encodeURIComponent(user.Username), function (u) {
             if (user.Password !== u.Password) {
                 Common.redirectToLoginPage();
             } else {
 
-                if (u.UserProfile === 0) {
+                if (u.UserProfile === 0 || u.UserProfile === 1) {
                     lnkManager.style.display = "inline";
                     lnkDesigner.style.display = "inline";
+                    lnkApproval.style.display = "inline";
                     lnkUsers.style.display = "inline";
+                }
+
+                if (u.UserProfile === 0) {
+                    lnkProfiles.style.display = "inline";
                 }
 
                 divEntries.style.display = "block";
@@ -209,7 +222,8 @@
                 var entryStatus = Common.status(val.Status);
                 items.push("<tr>"
                     + "<td class='status'>" + entryStatus + "</td>"
-                    + "<td class='date'>" + Common.formatDate(new Date(val.StatusDate)) + "</td>"
+                    //+ "<td class='date'>" + Common.formatDate(new Date(val.StatusDate)) + "</td>"
+                    + "<td class='date'>" + val.StatusDate + "</td>"
                     + "<td class='id' title='" + val.WorkflowId + "'>" + val.WorkflowId + "</td>"
                     + "<td class='name'>" + val.Name + "</td>"
                     + "<td class='lt'>" + lt + "</td>"
@@ -217,7 +231,7 @@
                     + "</tr>");
             }
 
-            var table = "<table id='entries-table' class='table table-hover'>"
+            var table = "<table id='entries-table' class='table'>"
                 + "<thead class='thead-dark'>"
                 + "<tr>"
                 + "<th id='th-status' class='status'>Status</th>"
@@ -400,7 +414,7 @@
             };
 
         }, function () {
-            //alert("An error occured while retrieving entries. Check Wexflow Web Service Uri and check that Wexflow Windows Service is running correctly.");
+            //alert("An error occured while retrieving entries. Check that Wexflow Windows Service is running correctly.");
         });
     }
 

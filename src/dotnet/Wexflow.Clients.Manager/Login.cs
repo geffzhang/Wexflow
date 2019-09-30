@@ -16,6 +16,9 @@ namespace Wexflow.Clients.Manager
 
         private const string ForgotPasswordPage = @"..\Backend\forgot-password.html";
 
+        public static string Username = "";
+        public static string Password = "";
+
         private readonly WexflowServiceClient _wexflowServiceClient;
 
         public Login()
@@ -50,8 +53,8 @@ namespace Wexflow.Clients.Manager
                 }
                 else
                 {
-                    User user = _wexflowServiceClient.GetUser(username);
                     string password = GetMd5(txtPassword.Text);
+                    User user = _wexflowServiceClient.GetUser(username, password, username);
 
                     if (user == null)
                     {
@@ -67,6 +70,9 @@ namespace Wexflow.Clients.Manager
                         {
                             if (user.Password == password)
                             {
+                                Username = user.Username;
+                                Password = user.Password;
+
                                 Manager manager = new Manager();
                                 manager.Show();
                                 Hide();
