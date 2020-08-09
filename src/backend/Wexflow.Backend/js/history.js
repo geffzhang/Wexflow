@@ -1,186 +1,257 @@
 ﻿function History() {
     "use strict";
 
-    var uri = Common.trimEnd(Settings.Uri, "/");
-    var divEntries = document.getElementById("entries");
-    var divEntriesAction = document.getElementById("entries-action");
-    var btnLogout = document.getElementById("btn-logout");
-    var btnSearch = document.getElementById("btn-search");
-    var txtSearch = document.getElementById("txt-search");
-    var slctEntriesCount = document.getElementById("slct-entries-count");
-    var btnNextPage = document.getElementById("btn-next-page");
-    var btnPreviousPage = document.getElementById("btn-previous-page");
-    var lblPages = document.getElementById("lbl-pages");
-    var lblEntriesCount = document.getElementById("lbl-entries-count");
-    var txtFrom = document.getElementById("txt-from");
-    var txtTo = document.getElementById("txt-to");
-    var lnkManager = document.getElementById("lnk-manager");
-    var lnkDesigner = document.getElementById("lnk-designer");
-    var lnkApproval = document.getElementById("lnk-approval");
-    var lnkUsers = document.getElementById("lnk-users");
-    var lnkProfiles = document.getElementById("lnk-profiles");
+    let updateLanguage = function (language) {
+        document.getElementById("lnk-records").innerHTML = language.get("lnk-records");
+        document.getElementById("lnk-approval").innerHTML = language.get("lnk-approval");
 
-    var page = 1;
-    var numberOfPages = 0;
-    var heo = 1;
-    var suser = getUser();
-    var from = null;
-    var to = null;
-    var username = "";
-    var password = "";
+        document.getElementById("lnk-dashboard").innerHTML = language.get("lnk-dashboard");
+        document.getElementById("lnk-manager").innerHTML = language.get("lnk-manager");
+        document.getElementById("lnk-designer").innerHTML = language.get("lnk-designer");
+        document.getElementById("lnk-history").innerHTML = language.get("lnk-history");
+        document.getElementById("lnk-users").innerHTML = language.get("lnk-users");
+        document.getElementById("lnk-profiles").innerHTML = language.get("lnk-profiles");
+        document.getElementById("spn-logout").innerHTML = language.get("spn-logout");
+
+        document.getElementById("lbl-show").innerHTML = language.get("lbl-show");
+        document.getElementById("lbl-entries").innerHTML = language.get("lbl-entries");
+        document.getElementById("spn-entries-count-label").innerHTML = language.get("spn-entries-count-label");
+        document.getElementById("lbl-from").innerHTML = language.get("lbl-from");
+        document.getElementById("lbl-to").innerHTML = language.get("lbl-to");
+        document.getElementById("btn-search").value = language.get("btn-search");
+
+        let statusPendingLabels = document.getElementsByClassName("st-pending");
+        for (let i = 0; i < statusPendingLabels.length; i++) {
+            statusPendingLabels[i].innerHTML = language.get("status-pending-label");
+        }
+        let statusRunningLabels = document.getElementsByClassName("st-running");
+        for (let i = 0; i < statusRunningLabels.length; i++) {
+            statusRunningLabels[i].innerHTML = language.get("status-running-label");
+        }
+        let statusDoneLabels = document.getElementsByClassName("st-done");
+        for (let i = 0; i < statusDoneLabels.length; i++) {
+            statusDoneLabels[i].innerHTML = language.get("status-done-label");
+        }
+        let statusFailedLabels = document.getElementsByClassName("st-failed");
+        for (let i = 0; i < statusFailedLabels.length; i++) {
+            statusFailedLabels[i].innerHTML = language.get("status-failed-label");
+        }
+        let statusWarningLabels = document.getElementsByClassName("st-warning");
+        for (let i = 0; i < statusWarningLabels.length; i++) {
+            statusWarningLabels[i].innerHTML = language.get("status-warning-label");
+        }
+        let statusStoppedLabels = document.getElementsByClassName("st-stopped");
+        for (let i = 0; i < statusStoppedLabels.length; i++) {
+            statusStoppedLabels[i].innerHTML = language.get("status-stopped-label");
+        }
+        let statusRejectedLabels = document.getElementsByClassName("st-rejected");
+        for (let i = 0; i < statusRejectedLabels.length; i++) {
+            statusRejectedLabels[i].innerHTML = language.get("status-disapproved-label");
+        }
+    };
+
+    let language = new Language("lang", updateLanguage);
+    language.init();
+
+    let uri = Common.trimEnd(Settings.Uri, "/");
+    let divEntries = document.getElementById("entries");
+    let divEntriesAction = document.getElementById("entries-action");
+    let btnLogout = document.getElementById("btn-logout");
+    let btnSearch = document.getElementById("btn-search");
+    let txtSearch = document.getElementById("txt-search");
+    let slctEntriesCount = document.getElementById("slct-entries-count");
+    let btnNextPage = document.getElementById("btn-next-page");
+    let btnPreviousPage = document.getElementById("btn-previous-page");
+    let lblPages = document.getElementById("lbl-pages");
+    let lblEntriesCount = document.getElementById("spn-entries-count");
+    let txtFrom = document.getElementById("txt-from");
+    let txtTo = document.getElementById("txt-to");
+    let lnkRecords = document.getElementById("lnk-records");
+    let lnkManager = document.getElementById("lnk-manager");
+    let lnkDesigner = document.getElementById("lnk-designer");
+    let lnkApproval = document.getElementById("lnk-approval");
+    let lnkUsers = document.getElementById("lnk-users");
+    let lnkProfiles = document.getElementById("lnk-profiles");
+    let lnkNotifications = document.getElementById("lnk-notifications");
+    let imgNotifications = document.getElementById("img-notifications");
+
+    let page = 1;
+    let numberOfPages = 0;
+    let heo = 1;
+    let suser = getUser();
+    let from = null;
+    let to = null;
+    let username = "";
+    let password = "";
+    let auth = "";
 
     if (suser === null || suser === "") {
         Common.redirectToLoginPage();
     } else {
-        var user = JSON.parse(suser);
+        let user = JSON.parse(suser);
 
         username = user.Username;
         password = user.Password;
+        auth = "Basic " + btoa(username + ":" + password);
 
-        Common.get(uri + "/user?qu=" + encodeURIComponent(username) + "&qp=" + encodeURIComponent(password) + "&username=" + encodeURIComponent(user.Username), function (u) {
-            if (user.Password !== u.Password) {
-                Common.redirectToLoginPage();
-            } else {
-
-                if (u.UserProfile === 0 || u.UserProfile === 1) {
-                    lnkManager.style.display = "inline";
-                    lnkDesigner.style.display = "inline";
-                    lnkApproval.style.display = "inline";
-                    lnkUsers.style.display = "inline";
-                }
-
-                if (u.UserProfile === 0) {
-                    lnkProfiles.style.display = "inline";
-                }
-
-                divEntries.style.display = "block";
-                divEntriesAction.style.display = "block";
-
-                btnLogout.onclick = function () {
-                    deleteUser();
+        Common.get(uri + "/user?username=" + encodeURIComponent(user.Username),
+            function (u) {
+                if (user.Password !== u.Password) {
                     Common.redirectToLoginPage();
-                };
+                } else {
+                    Common.get(uri + "/hasNotifications?a=" + encodeURIComponent(user.Username), function (hasNotifications) {
+                        if (u.UserProfile === 0 || u.UserProfile === 1) {
+                            lnkRecords.style.display = "inline";
+                            lnkManager.style.display = "inline";
+                            lnkDesigner.style.display = "inline";
+                            lnkApproval.style.display = "inline";
+                            lnkUsers.style.display = "inline";
+                            lnkNotifications.style.display = "inline";
+                        }
 
-                btnLogout.innerHTML = "Logout (" + u.Username + ")";
-                Common.get(uri + "/historyEntryStatusDateMin",
-                    function(dateMin) {
-                        Common.get(uri + "/historyEntryStatusDateMax",
-                            function (dateMax) {
+                        if (u.UserProfile === 0) {
+                            lnkProfiles.style.display = "inline";
+                        }
 
-                                from = new Date(dateMin);
-                                to = new Date(dateMax);
+                        if (hasNotifications === true) {
+                            imgNotifications.src = "images/notification-active.png";
+                        } else {
+                            imgNotifications.src = "images/notification.png";
+                        }
 
-                                if (from.getDay() === to.getDay() &&
-                                    from.getMonth() === to.getMonth() &&
-                                    from.getYear() === to.getYear()) {
-                                    to.setDate(to.getDate() + 1);
-                                }
+                        divEntries.style.display = "block";
+                        divEntriesAction.style.display = "block";
 
-                                Common.get(uri + "/historyEntriesCountByDate?s=" + encodeURIComponent(txtSearch.value) + "&from=" + from.getTime() + "&to=" + to.getTime(), function (count) {
+                        btnLogout.onclick = function () {
+                            deleteUser();
+                            Common.redirectToLoginPage();
+                        };
 
-                                    $(txtFrom).datepicker({
-                                        changeMonth: true,
-                                        changeYear: true,
-                                        dateFormat: "dd-mm-yy",
-                                        onSelect: function() {
-                                            from = $(this).datepicker("getDate");
-                                        }
-                                    });
+                        document.getElementById("spn-username").innerHTML = " (" + u.Username + ")";
 
-                                    $(txtFrom).datepicker("setDate", from);
+                        Common.get(uri + "/historyEntryStatusDateMin",
+                            function (dateMin) {
+                                Common.get(uri + "/historyEntryStatusDateMax",
+                                    function (dateMax) {
 
-                                    $(txtTo).datepicker({
-                                        changeMonth: true,
-                                        changeYear: true,
-                                        dateFormat: "dd-mm-yy",
-                                        onSelect: function () {
-                                            to = $(this).datepicker("getDate");
-                                        }
-                                    });
+                                        from = new Date(dateMin);
+                                        to = new Date(dateMax);
 
-                                    $(txtTo).datepicker("setDate", to);
+                                        from = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 0, 0, 0);;
+                                        to.setDate(to.getDate() + 1);
 
-                                    updatePagerControls(count);
+                                        Common.get(uri + "/historyEntriesCountByDate?s=" + encodeURIComponent(txtSearch.value) + "&from=" + from.getTime() + "&to=" + to.getTime(),
+                                            function (count) {
 
-                                    btnNextPage.onclick = function () {
-                                        page++;
-                                        if (page > 1) {
-                                            Common.disableButton(btnPreviousPage, false);
-                                        }
+                                                $(txtFrom).datepicker({
+                                                    changeMonth: true,
+                                                    changeYear: true,
+                                                    dateFormat: "dd-mm-yy",
+                                                    onSelect: function () {
+                                                        from = $(this).datepicker("getDate");
+                                                    }
+                                                });
 
-                                        if (page >= numberOfPages) {
-                                            Common.disableButton(btnNextPage, true);
-                                        } else {
-                                            Common.disableButton(btnNextPage, false);
-                                        }
+                                                $(txtFrom).datepicker("setDate", from);
 
-                                        lblPages.innerHTML = page + " / " + numberOfPages;
-                                        loadEntries();
-                                    };
+                                                $(txtTo).datepicker({
+                                                    changeMonth: true,
+                                                    changeYear: true,
+                                                    dateFormat: "dd-mm-yy",
+                                                    onSelect: function () {
+                                                        to = $(this).datepicker("getDate");
+                                                    }
+                                                });
 
-                                    Common.disableButton(btnPreviousPage, true);
+                                                $(txtTo).datepicker("setDate", to);
 
-                                    btnPreviousPage.onclick = function () {
-                                        page--;
-                                        if (page === 1) {
-                                            Common.disableButton(btnPreviousPage, true);
-                                        }
+                                                updatePagerControls(count);
 
-                                        if (page < numberOfPages) {
-                                            Common.disableButton(btnNextPage, false);
-                                        }
+                                                btnNextPage.onclick = function () {
+                                                    page++;
+                                                    if (page > 1) {
+                                                        Common.disableButton(btnPreviousPage, false);
+                                                    }
 
-                                        lblPages.innerHTML = page + " / " + numberOfPages;
-                                        loadEntries();
-                                    };
+                                                    if (page >= numberOfPages) {
+                                                        Common.disableButton(btnNextPage, true);
+                                                    } else {
+                                                        Common.disableButton(btnNextPage, false);
+                                                    }
 
-                                    btnSearch.onclick = function () {
-                                        page = 1;
-                                        updatePager();
-                                        loadEntries();
-                                    };
+                                                    lblPages.innerHTML = page + " / " + numberOfPages;
+                                                    loadEntries();
+                                                };
 
-                                    txtSearch.onkeyup = function (e) {
-                                        e.preventDefault();
+                                                Common.disableButton(btnPreviousPage, true);
 
-                                        if (e.keyCode === 13) {
-                                            page = 1;
-                                            updatePager();
-                                            loadEntries();
-                                        }
-                                    };
+                                                btnPreviousPage.onclick = function () {
+                                                    page--;
+                                                    if (page === 1) {
+                                                        Common.disableButton(btnPreviousPage, true);
+                                                    }
 
-                                    slctEntriesCount.onchange = function () {
-                                        page = 1;
-                                        updatePagerControls(count);
-                                        loadEntries();
-                                    };
+                                                    if (page < numberOfPages) {
+                                                        Common.disableButton(btnNextPage, false);
+                                                    }
 
-                                    loadEntries();
+                                                    lblPages.innerHTML = page + " / " + numberOfPages;
+                                                    loadEntries();
+                                                };
 
-                            });
+                                                btnSearch.onclick = function () {
+                                                    page = 1;
+                                                    updatePager();
+                                                    loadEntries();
+                                                };
 
-                    });
+                                                txtSearch.onkeyup = function (e) {
+                                                    e.preventDefault();
 
-                
-            });
+                                                    if (e.keyCode === 13) {
+                                                        page = 1;
+                                                        updatePager();
+                                                        loadEntries();
+                                                    }
+                                                };
 
-            }
-        });
+                                                slctEntriesCount.onchange = function () {
+                                                    page = 1;
+                                                    updatePagerControls(count);
+                                                    loadEntries();
+                                                };
+
+                                                loadEntries();
+
+                                            },
+                                            function () { }, auth);
+
+                                    },
+                                    function () { }, auth);
+
+
+                            },
+                            function () { }, auth);
+
+                    }, function () { }, auth);
+                }
+            }, function () { }, auth);
     }
 
     function updatePager() {
 
-        Common.get(uri + "/historyEntriesCountByDate?s=" + encodeURIComponent(txtSearch.value) + "&from=" + from.getTime() + "&to=" + to.getTime(), function (count) {
-            updatePagerControls(count);
-        });
+        Common.get(uri + "/historyEntriesCountByDate?s=" + encodeURIComponent(txtSearch.value) + "&from=" + from.getTime() + "&to=" + to.getTime(),
+            function (count) {
+                updatePagerControls(count);
+            },
+            function () { }, auth);
     }
 
     function updatePagerControls(count) {
-        lblEntriesCount.innerHTML = "Total entries: " + count;
+        lblEntriesCount.innerHTML = count;
 
         numberOfPages = count / getEntriesCount();
-        var numberOfPagesInt = parseInt(numberOfPages);
+        let numberOfPagesInt = parseInt(numberOfPages);
         if (numberOfPages > numberOfPagesInt) {
             numberOfPages = numberOfPagesInt + 1;
         } else if (numberOfPagesInt === 0) {
@@ -211,211 +282,247 @@
     }
 
     function loadEntries() {
-        var entriesCount = getEntriesCount();
+        let entriesCount = getEntriesCount();
 
-        Common.get(uri + "/searchHistoryEntriesByPageOrderBy?s=" + encodeURIComponent(txtSearch.value) +"&from="+ from.getTime() + "&to=" + to.getTime() + "&page=" + page + "&entriesCount=" + entriesCount + "&heo=" + heo, function (data) {
-            var items = [];
-            var i;
-            for (i = 0; i < data.length; i++) {
-                var val = data[i];
-                var lt = Common.launchType(val.LaunchType);
-                var entryStatus = Common.status(val.Status);
-                items.push("<tr>"
-                    + "<td class='status'>" + entryStatus + "</td>"
-                    //+ "<td class='date'>" + Common.formatDate(new Date(val.StatusDate)) + "</td>"
-                    + "<td class='date'>" + val.StatusDate + "</td>"
-                    + "<td class='id' title='" + val.WorkflowId + "'>" + val.WorkflowId + "</td>"
-                    + "<td class='name'>" + val.Name + "</td>"
-                    + "<td class='lt'>" + lt + "</td>"
-                    + "<td class='desc' title='" + val.Description + "'>" + val.Description + "</td>"
-                    + "</tr>");
-            }
+        Common.get(uri + "/searchHistoryEntriesByPageOrderBy?s=" + encodeURIComponent(txtSearch.value) + "&from=" + from.getTime() + "&to=" + to.getTime() + "&page=" + page + "&entriesCount=" + entriesCount + "&heo=" + heo,
+            function (data) {
+                let items = [];
 
-            var table = "<table id='entries-table' class='table'>"
-                + "<thead class='thead-dark'>"
-                + "<tr>"
-                + "<th id='th-status' class='status'>Status</th>"
-                + "<th id='th-date' class='date'>Date 🔻</th>"
-                + "<th id='th-id' class='id'>Id</th>"
-                + "<th id='th-name' class='name'>Name</th>"
-                + "<th id='th-lt' class='lt'>LaunchType</th>"
-                + "<th id='th-desc' class='desc'>Description</th>"
-                + "</tr>"
-                + "</thead>"
-                + "<tbody>"
-                + items.join("")
-                + "</tbody>"
-                + "</table>";
+                for (let i = 0; i < data.length; i++) {
+                    let val = data[i];
+                    let lt = Common.launchType(val.LaunchType);
+                    let entryStatus = Common.status(language, val.Status);
+                    items.push("<tr>"
+                        + "<input type='hidden' class='entryId' value='" + val.Id + "'>"
+                        + "<td class='status'>" + entryStatus + "</td>"
+                        + "<td class='date'>" + val.StatusDate + "</td>"
+                        + "<td class='id' title='" + val.WorkflowId + "'>" + val.WorkflowId + "</td>"
+                        + "<td class='name'>" + val.Name + "</td>"
+                        + "<td class='lt'>" + lt + "</td>"
+                        + "<td class='desc' title='" + val.Description + "'>" + val.Description + "</td>"
+                        + "</tr>");
+                }
 
-            document.getElementById("entries").innerHTML = table;
+                let table = "<table id='entries-table' class='table'>"
+                    + "<thead class='thead-dark'>"
+                    + "<tr>"
+                    + "<th id='th-status' class='status'>Status</th>"
+                    + "<th id='th-date' class='date'>Date 🔻</th>"
+                    + "<th id='th-id' class='id'>Id</th>"
+                    + "<th id='th-name' class='name'>Name</th>"
+                    + "<th id='th-lt' class='lt'>LaunchType</th>"
+                    + "<th id='th-desc' class='desc'>Description</th>"
+                    + "</tr>"
+                    + "</thead>"
+                    + "<tbody>"
+                    + items.join("")
+                    + "</tbody>"
+                    + "</table>";
 
-            var entriesTable = document.getElementById("entries-table");
-            var rows = (entriesTable.getElementsByTagName("tbody")[0]).getElementsByTagName("tr");
-            for (i = 0; i < rows.length; i++) {
-                rows[i].onclick = function () {
-                    var selected = document.getElementsByClassName("selected");
-                    if (selected.length > 0) {
-                        selected[0].className = selected[0].className.replace("selected", "");
+                document.getElementById("entries").innerHTML = table;
+
+                let entriesTable = document.getElementById("entries-table");
+
+                entriesTable.getElementsByTagName("tbody")[0].style.height = (document.getElementById("entries").offsetHeight - 35) + "px";
+
+                let rows = entriesTable.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+                if (rows.length > 0) {
+                    let hrow = entriesTable.getElementsByTagName("thead")[0].getElementsByTagName("tr")[0];
+                    hrow.querySelector(".status").style.width = rows[0].querySelector(".status").offsetWidth + "px";
+                    hrow.querySelector(".date").style.width = rows[0].querySelector(".date").offsetWidth + "px";
+                    hrow.querySelector(".id").style.width = rows[0].querySelector(".id").offsetWidth + "px";
+                    hrow.querySelector(".name").style.width = rows[0].querySelector(".name").offsetWidth + "px";
+                    hrow.querySelector(".lt").style.width = rows[0].querySelector(".lt").offsetWidth + "px";
+                    hrow.querySelector(".desc").style.width = rows[0].querySelector(".desc").offsetWidth + "px";
+                }
+
+                let descriptions = entriesTable.querySelectorAll(".desc");
+                for (let i = 0; i < descriptions.length; i++) {
+                    descriptions[i].style.width = entriesTable.offsetWidth - 600 + "px";
+                }
+
+                for (let i = 0; i < rows.length; i++) {
+                    rows[i].onclick = function () {
+                        //let selected = document.getElementsByClassName("selected");
+                        //if (selected.length > 0) {
+                        //    selected[0].className = selected[0].className.replace("selected", "");
+                        //}
+                        //this.className += "selected";
+
+                        let entryId = this.getElementsByClassName("entryId")[0].value;
+
+                        Common.get(uri + "/historyEntryLogs?id=" + entryId, function (logs) {
+                            let grabMe = document.getElementById("grabMe");
+                            grabMe.innerHTML = Common.escape(logs).replace(/\r\n/g, "<br>");
+
+                            new jBox('Modal', {
+                                width: 800,
+                                height: 420,
+                                title: 'Logs',
+                                content: $('#grabMe'),
+                            }).open();
+
+                        }, function () {
+                            Common.toastError("An error occured while retrieving logs.");
+                        }, auth);
+                    };
+                }
+
+                let thDate = document.getElementById("th-date");
+                let thId = document.getElementById("th-id");
+                let thName = document.getElementById("th-name");
+                let thLt = document.getElementById("th-lt");
+                let thDesc = document.getElementById("th-desc");
+                let thStatus = document.getElementById("th-status");
+
+                if (heo === 0) { // By Date ascending
+                    thDate.innerHTML = "Date&nbsp;&nbsp;🔺";
+                    thId.innerHTML = "Id";
+                    thName.innerHTML = "Name";
+                    thLt.innerHTML = "LaunchType";
+                    thDesc.innerHTML = "Description";
+                    thStatus.innerHTML = "Status";
+                } else if (heo === 1) { // By Date descending
+                    thDate.innerHTML = "Date&nbsp;&nbsp;🔻";
+                    thId.innerHTML = "Id";
+                    thName.innerHTML = "Name";
+                    thLt.innerHTML = "LaunchType";
+                    thDesc.innerHTML = "Description";
+                    thStatus.innerHTML = "Status";
+                } else if (heo === 2) { // By Id ascending
+                    thId.innerHTML = "Id&nbsp;&nbsp;🔺";
+                    thDate.innerHTML = "Date";
+                    thName.innerHTML = "Name";
+                    thLt.innerHTML = "LaunchType";
+                    thDesc.innerHTML = "Description";
+                } else if (heo === 3) { // By Id descending
+                    thId.innerHTML = "Id&nbsp;&nbsp;🔻";
+                    thDate.innerHTML = "Date";
+                    thName.innerHTML = "Name";
+                    thLt.innerHTML = "LaunchType";
+                    thDesc.innerHTML = "Description";
+                    thStatus.innerHTML = "Status";
+                } else if (heo === 4) { // By Name ascending
+                    thName.innerHTML = "Name&nbsp;&nbsp;🔺";
+                    thDate.innerHTML = "Date";
+                    thId.innerHTML = "Id";
+                    thLt.innerHTML = "LaunchType";
+                    thDesc.innerHTML = "Description";
+                    thStatus.innerHTML = "Status";
+                } else if (heo === 5) { // By Name descending
+                    thName.innerHTML = "Name&nbsp;&nbsp;🔻";
+                    thDate.innerHTML = "Date";
+                    thId.innerHTML = "Id";
+                    thLt.innerHTML = "LaunchType";
+                    thDesc.innerHTML = "Description";
+                    thStatus.innerHTML = "Status";
+                } else if (heo === 6) { // By LaunchType ascending
+                    thLt.innerHTML = "LaunchType&nbsp;&nbsp;🔺";
+                    thDate.innerHTML = "Date";
+                    thId.innerHTML = "Id";
+                    thName.innerHTML = "Name";
+                    thDesc.innerHTML = "Description";
+                    thStatus.innerHTML = "Status";
+                } else if (heo === 7) { // By LaunchType descending
+                    thLt.innerHTML = "LaunchType&nbsp;&nbsp;🔻";
+                    thDate.innerHTML = "Date";
+                    thId.innerHTML = "Id";
+                    thName.innerHTML = "Name";
+                    thDesc.innerHTML = "Description";
+                    thStatus.innerHTML = "Status";
+                } else if (heo === 8) { // By Description ascending
+                    thDesc.innerHTML = "Description&nbsp;&nbsp;🔺";
+                    thDate.innerHTML = "Date";
+                    thId.innerHTML = "Id";
+                    thName.innerHTML = "Name";
+                    thLt.innerHTML = "LaunchType";
+                    thStatus.innerHTML = "Status";
+                } else if (heo === 9) { // By Description descending
+                    thDesc.innerHTML = "Description&nbsp;&nbsp;🔻";
+                    thDate.innerHTML = "Date";
+                    thId.innerHTML = "Id";
+                    thName.innerHTML = "Name";
+                    thLt.innerHTML = "LaunchType";
+                    thStatus.innerHTML = "Status";
+                } else if (heo === 10) { // By Status ascending
+                    thStatus.innerHTML = "Status&nbsp;&nbsp;🔺";
+                    thDate.innerHTML = "Date";
+                    thId.innerHTML = "Id";
+                    thName.innerHTML = "Name";
+                    thLt.innerHTML = "LaunchType";
+                    thDesc.innerHTML = "Description";
+                } else if (heo === 11) { // By Status descending
+                    thStatus.innerHTML = "Status&nbsp;&nbsp;🔻";
+                    thDate.innerHTML = "Date";
+                    thId.innerHTML = "Id";
+                    thName.innerHTML = "Name";
+                    thLt.innerHTML = "LaunchType";
+                    thDesc.innerHTML = "Description";
+                }
+
+                thDate.onclick = function () {
+                    if (heo === 1) {
+                        heo = 0;
+                        loadEntries();
+                    } else {
+                        heo = 1;
+                        loadEntries();
                     }
-                    this.className += "selected";
                 };
-            }
 
-            var thDate = document.getElementById("th-date");
-            var thId = document.getElementById("th-id");
-            var thName = document.getElementById("th-name");
-            var thLt = document.getElementById("th-lt");
-            var thDesc = document.getElementById("th-desc");
-            var thStatus = document.getElementById("th-status");
+                thId.onclick = function () {
+                    if (heo === 2) {
+                        heo = 3;
+                        loadEntries();
+                    } else {
+                        heo = 2;
+                        loadEntries();
+                    }
+                };
 
-            if (heo === 0) { // By Date ascending
-                thDate.innerHTML = "Date&nbsp;&nbsp;🔺";
-                thId.innerHTML = "Id";
-                thName.innerHTML = "Name";
-                thLt.innerHTML = "LaunchType";
-                thDesc.innerHTML = "Description";
-                thStatus.innerHTML = "Status";
-            } else if (heo === 1) { // By Date descending
-                thDate.innerHTML = "Date&nbsp;&nbsp;🔻";
-                thId.innerHTML = "Id";
-                thName.innerHTML = "Name";
-                thLt.innerHTML = "LaunchType";
-                thDesc.innerHTML = "Description";
-                thStatus.innerHTML = "Status";
-            } else if (heo === 2) { // By Id ascending
-                thId.innerHTML = "Id&nbsp;&nbsp;🔺";
-                thDate.innerHTML = "Date";
-                thName.innerHTML = "Name";
-                thLt.innerHTML = "LaunchType";
-                thDesc.innerHTML = "Description";
-            } else if (heo === 3) { // By Id descending
-                thId.innerHTML = "Id&nbsp;&nbsp;🔻";
-                thDate.innerHTML = "Date";
-                thName.innerHTML = "Name";
-                thLt.innerHTML = "LaunchType";
-                thDesc.innerHTML = "Description";
-                thStatus.innerHTML = "Status";
-            } else if (heo === 4) { // By Name ascending
-                thName.innerHTML = "Name&nbsp;&nbsp;🔺";
-                thDate.innerHTML = "Date";
-                thId.innerHTML = "Id";
-                thLt.innerHTML = "LaunchType";
-                thDesc.innerHTML = "Description";
-                thStatus.innerHTML = "Status";
-            } else if (heo === 5) { // By Name descending
-                thName.innerHTML = "Name&nbsp;&nbsp;🔻";
-                thDate.innerHTML = "Date";
-                thId.innerHTML = "Id";
-                thLt.innerHTML = "LaunchType";
-                thDesc.innerHTML = "Description";
-                thStatus.innerHTML = "Status";
-            } else if (heo === 6) { // By LaunchType ascending
-                thLt.innerHTML = "LaunchType&nbsp;&nbsp;🔺";
-                thDate.innerHTML = "Date";
-                thId.innerHTML = "Id";
-                thName.innerHTML = "Name";
-                thDesc.innerHTML = "Description";
-                thStatus.innerHTML = "Status";
-            } else if (heo === 7) { // By LaunchType descending
-                thLt.innerHTML = "LaunchType&nbsp;&nbsp;🔻";
-                thDate.innerHTML = "Date";
-                thId.innerHTML = "Id";
-                thName.innerHTML = "Name";
-                thDesc.innerHTML = "Description";
-                thStatus.innerHTML = "Status";
-            } else if (heo === 8) { // By Description ascending
-                thDesc.innerHTML = "Description&nbsp;&nbsp;🔺";
-                thDate.innerHTML = "Date";
-                thId.innerHTML = "Id";
-                thName.innerHTML = "Name";
-                thLt.innerHTML = "LaunchType";
-                thStatus.innerHTML = "Status";
-            } else if (heo === 9) { // By Description descending
-                thDesc.innerHTML = "Description&nbsp;&nbsp;🔻";
-                thDate.innerHTML = "Date";
-                thId.innerHTML = "Id";
-                thName.innerHTML = "Name";
-                thLt.innerHTML = "LaunchType";
-                thStatus.innerHTML = "Status";
-            } else if (heo === 10) { // By Status ascending
-                thStatus.innerHTML = "Status&nbsp;&nbsp;🔺";
-                thDate.innerHTML = "Date";
-                thId.innerHTML = "Id";
-                thName.innerHTML = "Name";
-                thLt.innerHTML = "LaunchType";
-                thDesc.innerHTML = "Description";
-            } else if (heo === 11) { // By Status descending
-                thStatus.innerHTML = "Status&nbsp;&nbsp;🔻";
-                thDate.innerHTML = "Date";
-                thId.innerHTML = "Id";
-                thName.innerHTML = "Name";
-                thLt.innerHTML = "LaunchType";
-                thDesc.innerHTML = "Description";
-            } 
+                thName.onclick = function () {
+                    if (heo === 4) {
+                        heo = 5;
+                        loadEntries();
+                    } else {
+                        heo = 4;
+                        loadEntries();
+                    }
+                };
 
-            thDate.onclick = function () {
-                if (heo === 1) {
-                    heo = 0;
-                    loadEntries();
-                } else {
-                    heo = 1;
-                    loadEntries();
-                }
-            };
+                thLt.onclick = function () {
+                    if (heo === 6) {
+                        heo = 7;
+                        loadEntries();
+                    } else {
+                        heo = 6;
+                        loadEntries();
+                    }
+                };
 
-            thId.onclick = function () {
-                if (heo === 2) {
-                    heo = 3;
-                    loadEntries();
-                } else {
-                    heo = 2;
-                    loadEntries();
-                }
-            };
+                thDesc.onclick = function () {
+                    if (heo === 8) {
+                        heo = 9;
+                        loadEntries();
+                    } else {
+                        heo = 8;
+                        loadEntries();
+                    }
+                };
 
-            thName.onclick = function () {
-                if (heo === 4) {
-                    heo = 5;
-                    loadEntries();
-                } else {
-                    heo = 4;
-                    loadEntries();
-                }
-            };
+                thStatus.onclick = function () {
+                    if (heo === 10) {
+                        heo = 11;
+                        loadEntries();
+                    } else {
+                        heo = 10;
+                        loadEntries();
+                    }
+                };
 
-            thLt.onclick = function () {
-                if (heo === 6) {
-                    heo = 7;
-                    loadEntries();
-                } else {
-                    heo = 6;
-                    loadEntries();
-                }
-            };
-
-            thDesc.onclick = function () {
-                if (heo === 8) {
-                    heo = 9;
-                    loadEntries();
-                } else {
-                    heo = 8;
-                    loadEntries();
-                }
-            };
-
-            thStatus.onclick = function () {
-                if (heo === 10) {
-                    heo = 11;
-                    loadEntries();
-                } else {
-                    heo = 10;
-                    loadEntries();
-                }
-            };
-
-        }, function () {
-            //alert("An error occured while retrieving entries. Check that Wexflow Windows Service is running correctly.");
-        });
+            }, function () {
+                //alert("An error occured while retrieving entries. Check that Wexflow Windows Service is running correctly.");
+            }, auth);
     }
 
 }

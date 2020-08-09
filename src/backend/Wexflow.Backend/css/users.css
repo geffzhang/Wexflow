@@ -16,7 +16,7 @@
     height: 43px;
     background: #29A85C;
     color: #FFFFFF;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.3);
 }
 
     #header a {
@@ -34,9 +34,36 @@
         float: right;
     }
 
-    #header #lnk-manager, #lnk-designer, #lnk-approval, #lnk-users, #lnk-profiles {
+    #header #lnk-records, #lnk-manager, #lnk-designer, #lnk-editor, #lnk-approval, #lnk-users, #lnk-profiles, #lnk-notifications {
         display: none;
     }
+
+/*lang*/
+#lang {
+    margin-top: 10px;
+    margin-right: 20px;
+    color: #000;
+}
+
+#lang .lang{
+    cursor: pointer;
+    padding-right: 3px;
+    padding-left: 3px;
+}
+
+#lang .lang:hover{
+    opacity:.8;
+}
+
+.dropdown-menu{
+    min-width: 90px;
+}
+
+/*notifications*/
+#lnk-notifications {
+    margin: 0 !important;
+    margin-top: 10px !important;
+}
 
 #users {
     position: absolute;
@@ -78,12 +105,29 @@
     overflow: auto;
 }
 
-#users-table .thead-dark {
+/* table */
+
+#users-table #wf-users-table {
+    display: block;
+    table-layout: fixed;
+    margin: 0;
+}
+
+#users-table #wf-users-table thead, tbody {
+    display: block;
+}
+
+#users-table #wf-users-table tbody {
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+#users-table #wf-users-table .thead-dark {
     background: #272727;
     color: #EEEEEE;
 }
 
-#users-table tbody tr:hover{
+#users-table #wf-users-table tbody tr:hover{
     background: #EEEEEE;
 }
 
@@ -114,7 +158,6 @@
 
     #right-panel #new-user-action, #save-action, #delete-action {
         margin-top: 10px;
-        width: 75px;
     }
 
     #right-panel .action-right {

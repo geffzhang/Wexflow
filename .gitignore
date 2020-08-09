@@ -3,7 +3,7 @@ Thumbs.db
 *.userprefs
 *.obj
 *.exe
-!libs/chromedriver.exe
+#libs/chromedriver.exe
 *.exe.config
 *.pdb
 *.user
@@ -36,11 +36,21 @@ setup/*.tar.gz
 setup/*.zip
 setup/*.zip.tmp
 setup/Wexflow.app/
+!setup/net/Wexflow.Scripts.CosmosDB/*.exe.config
+!setup/net/Wexflow.Scripts.MongoDB/*.exe.config
+!setup/net/Wexflow.Scripts.PostgreSQL/*.exe.config
+!setup/net/Wexflow.Scripts.RavenDB/*.exe.config
+!setup/net/Wexflow.Scripts.SQLServer/*.exe.config
+!setup/net/Wexflow.Scripts.MySQL/*.exe.config
+!setup/net/Wexflow.Scripts.Firebird/*.exe.config
+!setup/net/Wexflow.Scripts.Oracle/*.exe.config
+!setup/net/Wexflow.Scripts.MariaDB/*.exe.config
 *.nupkg
 Wexflow-coverage-dotnet.xml
 Wexflow-coverage-dotnet-core.xml
 packages/
 Wexflow.Core.xml
+.idea
 
 # Xcode
 #

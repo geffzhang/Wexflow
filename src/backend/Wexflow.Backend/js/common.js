@@ -1,4 +1,4 @@
-﻿Common = {
+﻿const Common = {
 
     redirectToLoginPage: function () {
         window.location.replace("index.html");
@@ -12,7 +12,7 @@
         return string;
     },
 
-    get: function (url, callback, errorCallback) {
+    get: function (url, callback, errorCallback, auth) {
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200 && callback) {
@@ -28,10 +28,11 @@
             if (errorCallback) errorCallback();
         };
         xmlhttp.open("GET", url, true);
+        if (auth) xmlhttp.setRequestHeader("Authorization", auth);
         xmlhttp.send();
     },
 
-    post: function (url, callback, errorCallback, json) {
+    post: function (url, callback, errorCallback, content, auth, isFile) {
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200 && callback) {
@@ -48,7 +49,14 @@
         };
         xmlhttp.open("POST", url, true);
         //xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-        xmlhttp.send(JSON.stringify(json));
+        if (auth) {
+            xmlhttp.setRequestHeader("Authorization", auth);
+        }
+        if (isFile === true) {
+            xmlhttp.send(content);
+        } else {
+            xmlhttp.send(JSON.stringify(content));
+        }
     },
 
     launchType: function (lt) {
@@ -67,24 +75,24 @@
         }
     },
 
-    status: function (s) {
+    status: function (language, s) {
         switch (s) {
             case 0:
-                return "<img src='images/pending-small.png' /> Pending";
+                return "<img src='images/pending-small.png' /> <span class='st-pending'>" + language.get("status-pending-label") + "</span>";
             case 1:
-                return "<img src='images/running-small.png' /> Running";
+                return "<img src='images/running-small.png' /> <span class='st-running'>" + language.get("status-running-label") + "</span>";
             case 2:
-                return "<img src='images/done-small.png' /> Done";
+                return "<img src='images/done-small.png' /> <span class='st-done'>" + language.get("status-done-label") + "</span>";
             case 3:
-                return "<img src='images/failed-small.png' /> Failed";
+                return "<img src='images/failed-small.png' /> <span class='st-failed'>" + language.get("status-failed-label") + "</span>";
             case 4:
-                return "<img src='images/warning-small.png' /> Warning";
+                return "<img src='images/warning-small.png' /> <span class='st-warning'>" + language.get("status-warning-label") + "</span>";
             //case 5:
             //    return "<img src='images/disabled-small.png' /> Disabled";
             case 6:
-                return "<img src='images/stopped-small.png' /> Stopped";
+                return "<img src='images/stopped-small.png' /> <span class='st-stopped'>" + language.get("status-stopped-label") + "</span>";
             case 7:
-                return "<img src='images/disapproved-small.png' /> Disapproved";
+                return "<img src='images/disapproved-small.png' /> <span class='st-rejected'>" + language.get("status-disapproved-label") + "</span>";
             default:
                 return "";
         }
@@ -138,6 +146,22 @@
             hideAfter: 5000,
             icon: 'error'
         });
+    },
+
+    escape: function (str) {
+        return str.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&apos;');
+    },
+
+    removeItemOnce: function (arr, value) {
+        var index = arr.indexOf(value);
+        if (index > -1) {
+            arr.splice(index, 1);
+        }
+        return arr;
     }
 
 };
